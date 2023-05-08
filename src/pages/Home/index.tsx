@@ -34,7 +34,7 @@ export const Home = () => {
             id="minutesAmountInput"
             step={5}
             min={0}
-            max={99}
+            max={60}
           />
           <span>minutos</span>
         </FormContainer>

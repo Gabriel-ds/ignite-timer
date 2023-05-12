@@ -26,13 +26,18 @@ interface NewCyrcleFromData {
 }
 
 export const Home = () => {
-  const { register, handleSubmit, watch, formState } =
+  const { register, handleSubmit, watch, formState, reset } =
     useForm<NewCyrcleFromData>({
       resolver: zodResolver(newCycleFormValidationSchema),
+      defaultValues: {
+        task: "",
+        minutesAmount: 0,
+      },
     });
 
   const handleNewCycle = (data: NewCyrcleFromData) => {
     console.log(data);
+    reset();
   };
 
   console.log(formState.errors);

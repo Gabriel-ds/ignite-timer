@@ -5,9 +5,10 @@ import {
   MinutesAmountInput,
   Separator,
   StartCountdownButton,
+  StopCountdownButton,
   TaskInput,
 } from "./styles";
-import { Play } from "phosphor-react";
+import { HandPalm, Play } from "phosphor-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
@@ -32,6 +33,7 @@ interface Cycle {
   task: string;
   minutesAmount: number;
   startDate: Date;
+  interruptedDate?: Date;
 }
 
 export const Home = () => {
@@ -48,21 +50,6 @@ export const Home = () => {
       },
     });
 
-  const handleNewCycle = (data: NewCyrcleFromData) => {
-    const id = String(new Date().getTime());
-
-    const newCycle: Cycle = {
-      id,
-      task: data.task,
-      minutesAmount: data.minutesAmount,
-      startDate: new Date(),
-    };
-    setCycles((prevState) => [...prevState, newCycle]);
-    setActiveCycleId(id);
-    setAmountSecondsPassed(0);
-    reset();
-  };
-
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId);
 
   const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
@@ -78,6 +65,35 @@ export const Home = () => {
 
   const task = watch("minutesAmount");
   const isSubmitDisabled = !task;
+
+  const handleInterruuptedCycle = () => {
+    setCycles(
+      cycles.map((cycle) => {
+        if (cycle.id === activeCycleId) {
+          return { ...cycle, interruptedDate: new Date() };
+        } else {
+          return cycle;
+        }
+      })
+    );
+
+    setActiveCycleId(null);
+  };
+
+  const handleNewCycle = (data: NewCyrcleFromData) => {
+    const id = String(new Date().getTime());
+
+    const newCycle: Cycle = {
+      id,
+      task: data.task,
+      minutesAmount: data.minutesAmount,
+      startDate: new Date(),
+    };
+    setCycles((prevState) => [...prevState, newCycle]);
+    setActiveCycleId(id);
+    setAmountSecondsPassed(0);
+    reset();
+  };
 
   useEffect(() => {
     let interval: number;
@@ -108,6 +124,7 @@ export const Home = () => {
             id="taskInput"
             placeholder="De um nome para o seu projeto"
             list="task-suggestions"
+            disabled={!!activeCycle}
             {...register("task")}
           />
 
@@ -123,7 +140,8 @@ export const Home = () => {
             id="minutesAmountInput"
             step={5}
             min={0}
-            // max={60}
+            max={60}
+            disabled={!!activeCycle}
             {...register("minutesAmount", { valueAsNumber: true })}
           />
           <span>minutos</span>
@@ -137,10 +155,17 @@ export const Home = () => {
           <span>{seconds[1]}</span>
         </CountdownContainer>
 
-        <StartCountdownButton disabled={isSubmitDisabled} type="submit">
-          <Play size={24} />
-          Começar
-        </StartCountdownButton>
+        {activeCycle ? (
+          <StopCountdownButton onClick={handleInterruuptedCycle}>
+            <HandPalm size={24} />
+            Interromper
+          </StopCountdownButton>
+        ) : (
+          <StartCountdownButton disabled={isSubmitDisabled} type="submit">
+            <Play size={24} />
+            Começar
+          </StartCountdownButton>
+        )}
       </form>
     </HomeContainer>
   );

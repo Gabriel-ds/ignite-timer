@@ -59,22 +59,11 @@ export const Home = () => {
     };
     setCycles((prevState) => [...prevState, newCycle]);
     setActiveCycleId(id);
-
+    setAmountSecondsPassed(0);
     reset();
   };
 
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId);
-  console.log("activeCycle =>", activeCycle);
-
-  useEffect(() => {
-    if (activeCycle) {
-      setInterval(() => {
-        setAmountSecondsPassed(
-          differenceInSeconds(new Date(), activeCycle?.startDate)
-        );
-      }, 1000);
-    }
-  }, [activeCycle]);
 
   const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
   const currentSeconds = activeCycle
@@ -89,6 +78,25 @@ export const Home = () => {
 
   const task = watch("minutesAmount");
   const isSubmitDisabled = !task;
+
+  useEffect(() => {
+    let interval: number;
+    if (activeCycle) {
+      interval = setInterval(() => {
+        setAmountSecondsPassed(
+          differenceInSeconds(new Date(), activeCycle?.startDate)
+        );
+      }, 1000);
+    }
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [activeCycle]);
+
+  useEffect(() => {
+    if (activeCycle) document.title = `${minutes}:${seconds}`;
+  }, [minutes, seconds, activeCycle]);
 
   return (
     <HomeContainer>
